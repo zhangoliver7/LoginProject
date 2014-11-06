@@ -1,5 +1,6 @@
 from pymongo import MongoClient
 from hashlib import sha512
+from bson.objectid import ObjectId
 
 def connect():
     conn = MongoClient()
@@ -13,7 +14,7 @@ def extract_object_id(object_id):
     uid = user_id_in_stupid_format[first_stupid_quote + 1:second_stupid_quote]
     return uid
 
-def password_correct(username, password):
+def password_correct(password, username="", uid=""):
     db = connect()
     if username == "" or password == "":
         return False
@@ -22,8 +23,7 @@ def password_correct(username, password):
     if user == None:
         return False
 
-    if user["password"] == sha512(password).hexdigest():
-        # ObjectId' object has no attribute 'valueOf' ????????
+    if user["password"] == sha512(password).hexdigest(): # ObjectId' object has no attribute 'valueOf' ????????
         return extract_object_id(user["_id"])
 
     else:
@@ -45,3 +45,13 @@ def new_user(username, password, schedule):
     object_id = db.users.insert({"username": username, "password":password, "schedule":schedule})
     uid = extract_object_id(object_id)
     return uid
+
+def update_password(uid, password):
+    db = connect()
+    password = sha512(password).hexdigest()
+    db.users.update({"_id": ObjectId(uid)}, {"password":password})
+
+def update_schedule(uid, schedule):
+    db = connect()
+    db.users.update({"_id": ObjectId(uid)}, {"schedule":schedule})
+
