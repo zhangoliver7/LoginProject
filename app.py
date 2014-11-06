@@ -1,5 +1,4 @@
 from flask import Flask,request,redirect,render_template,session, flash
-import sessions
 
 app=Flask(__name__)
 
@@ -53,5 +52,11 @@ def schedule():
         pass
         # update schedule
 
+@app.route("/u")
+def user():
+    # fetch user schedule
+    pass
+
 if __name__== "__main__":
+    app.debug = True
     app.run()
