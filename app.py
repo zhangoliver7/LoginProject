@@ -4,6 +4,22 @@ import db
 app = Flask(__name__)
 app.secret_key = "I'm all about that bass"
 
+def login_required(func):
+    def inner():
+        if "uid" in session:
+            return func()
+        else:
+            return redirect("/")
+    return inner
+
+def cant_be_logged_in(func):
+    def inner():
+        if not "uid" in session:
+            return func()
+        else:
+            return redirect("/")
+    return inner
+
 @app.route('/')
 def home():
     #show collections
@@ -11,11 +27,10 @@ def home():
     #coll = db.users
     users = db.list_users
     return render_template("index.html", list = users)
-
+    
 @app.route('/login',methods=['GET','POST'])
+@cant_be_logged_in
 def login():
-    if "uid" in session:
-        return redirect("/")
 
     if request.method == "GET":
         return render_template("login.html")
@@ -31,14 +46,14 @@ def login():
         # log the user in
 
 @app.route("/logout")
+@cant_be_logged_in
 def logout():
     session.clear()
     return redirect("/")
 
 @app.route('/register',methods=['GET','POST'])
+@cant_be_logged_in
 def register():
-    if "uid" in session:
-        return redirect("/")
 
     if request.method == "GET":
         return render_template("register.html")
@@ -71,9 +86,8 @@ def register():
 
 
 @app.route("/account", methods=["GET", "POST"])
+@login_required
 def account():
-    if not "uid" in session:
-        return redirect("/")
 
     if request.method == "GET":
         return render_template("account.html")
@@ -93,9 +107,8 @@ def account():
         db.update_password(session["uid"], password)
 
 @app.route("/schedule", methods=["GET", "POST"])
+@login_required
 def schedule():
-    if not "uid" in session:
-        return redirect("/")
 
     if request.method == "GET":
         # fetch current schedule
